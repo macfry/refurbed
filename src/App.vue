@@ -1,9 +1,7 @@
 <template>
   <main>
     <header class="bg-blue-500 p-4">
-      <select-market :options="state.marketOptions" :default="state.selectedMarked" v-model="state.selectedMarked"></select-market>
-
-      {{ state.selectedMarked }}
+      <select-market :options="state.marketOptions" :default="state.selectedMarket" v-model="state.selectedMarket" />
 
       <img
         class="w-32"
@@ -12,57 +10,10 @@
     </header>
 
     <div class="grid grid-cols-3 gap-4 p-4 mb-4">
-      <div
-        class="bg-white rounded-xl p-4 shadow-md"
-        v-for="(product, index) in state.products"
-        :key="product.id"
-      >
-        <img class="w-32" :src="product.picture" />
-        <h3 class="text-xl mb-2">{{ product.name }}</h3>
-        <p class="mb-2">{{ product.price }}</p>
-        <button
-          class="
-            py-2
-            px-4
-            bg-blue-500
-            hover:bg-blue-700
-            text-white
-            rounded-lg
-            shadow-md
-            float-right
-          "
-          @click="addToCart(index)"
-          :disabled="product.stock < 0"
-        >
-          Add to cart
-        </button>
-      </div>
+      <product v-for="product in state.products" :product="product" :key="`product-${product.id}`" />
     </div>
 
-    <div class="p-4 m-4 bg-white shadow-md">
-      <h2 class="text-2xl mb-2">Cart</h2>
-      <hr />
-      <table class="table-fixed">
-        <thead>
-          <tr>
-            <th class="w-1/2 text-left p-2">Product</th>
-            <th class="w-1/4 p-2">Quantity</th>
-            <th class="w-1/4 text-right p-2">Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="product in state.cart" :key="product.id">
-            <td class="p-2">{{ product.name }}</td>
-            <td class="p-2">{{ product.quantity }}</td>
-            <td class="p-2">{{ product.price }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <hr />
-      <p class="m-2">Net: 0</p>
-      <p class="m-2">VAT: 0</p>
-      <p class="m-2 font-bold">Total: {{ total(state.cart) }}</p>
-    </div>
+    <cart :country-code="state.selectedMarket" />
   </main>
 </template>
 
@@ -71,18 +22,18 @@ import { reactive, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { IMarketOption, IProduct } from './types/products';
 import SelectMarket from './components/SelectMarket.vue';
+import Product from './components/Product.vue';
+import Cart from './components/Cart.vue';
 
 interface IState {
-  cart: IProduct[];
   products: IProduct[];
   marketOptions: IMarketOption[];
-  selectedMarked: string;
+  selectedMarket: string;
 }
 
 const store = useStore();
 
 const state = reactive<IState>({
-  cart: [],
   products: [],
   marketOptions: [
     {
@@ -94,23 +45,8 @@ const state = reactive<IState>({
       name: 'PL (PLN)',
     }
   ],
-  selectedMarked: '',
+  selectedMarket: 'DE',
 });
-
-const addToCart = (id: number) => {
-  let product = state.products[id];
-  product.quantity = 1;
-  product.stock = product.stock - 1;
-  state.cart.push(product);
-};
-
-const total = (products: IProduct[]) => {
-  let total = 0;
-  products.forEach((product) => {
-    total += product.price;
-  });
-  return total;
-};
 
 const vatRates = () => {
   var requestURL = "https://api.exchangerate.host/vat_rates";
@@ -137,7 +73,7 @@ const exchangeRates = () => {
 };
 
 onMounted(() => {
-  state.products = store.getters.products;
+  state.products = store.getters.products as IProduct[];
   vatRates();
   exchangeRates();
 });

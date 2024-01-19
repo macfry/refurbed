@@ -17,6 +17,7 @@ export const mutations: MutationTree<IState> & Mutations = {
 
         if (existingProductIndex === -1) {
             // add product if not exist in cart
+            product.quantity = 1;
             state.cart.push(product);
         } else {
             // change quantity existing product in cart
