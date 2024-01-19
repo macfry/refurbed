@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { PropType } from 'vue';
-import { IMarketOption } from './../types/products';
 
 const props = defineProps({
     options: {
-        type: Array as PropType<IMarketOption[]>,
+        type: Array as PropType<string[]>,
         required: true,
     },
     default: {
@@ -27,10 +26,10 @@ const onChage = (event: Event) => {
      >
         <option 
             v-for="option in props.options" 
-            :selected="option.value === props.default"
-            :value="option.value"
+            :selected="option === props.default"
+            :value="option"
         >
-            {{ option.name }}
+            {{ option }}
         </option>
     </select>
 </template>

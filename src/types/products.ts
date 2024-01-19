@@ -6,8 +6,3 @@ export interface IProduct {
     stock: number;
     quantity?: number;
 }
-
-export interface IMarketOption {
-    value: string;
-    name: string;
-}

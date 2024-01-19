@@ -1,7 +1,7 @@
 <template>
   <main>
     <header class="bg-blue-500 p-4">
-      <select-market :options="state.marketOptions" :default="state.selectedMarket" v-model="state.selectedMarket" />
+      <select-market :options="marketOptions" :default="selectedMarket" v-model="selectedMarket" />
 
       <img
         class="w-32"
@@ -10,71 +10,28 @@
     </header>
 
     <div class="grid grid-cols-3 gap-4 p-4 mb-4">
-      <product v-for="product in state.products" :product="product" :key="`product-${product.id}`" />
+      <product v-for="product in products" :product="product" :key="`product-${product.id}`" />
     </div>
 
-    <cart :country-code="state.selectedMarket" />
+    <cart :market="selectedMarket" />
   </main>
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
-import { IMarketOption, IProduct } from './types/products';
+import { IProduct } from './types/products';
 import SelectMarket from './components/SelectMarket.vue';
 import Product from './components/Product.vue';
 import Cart from './components/Cart.vue';
 
-interface IState {
-  products: IProduct[];
-  marketOptions: IMarketOption[];
-  selectedMarket: string;
-}
-
 const store = useStore();
 
-const state = reactive<IState>({
-  products: [],
-  marketOptions: [
-    {
-      value: 'DE',
-      name: 'DE (EUR)',
-    },
-    {
-      value: 'PL',
-      name: 'PL (PLN)',
-    }
-  ],
-  selectedMarket: 'DE',
-});
-
-const vatRates = () => {
-  var requestURL = "https://api.exchangerate.host/vat_rates";
-  var request = new XMLHttpRequest();
-  request.open("GET", requestURL);
-  request.responseType = "json";
-  request.send();
-  request.onload = function () {
-    var response = request.response;
-    console.log(response);
-  };
-};
-
-const exchangeRates = () => {
-  var requestURL = "https://api.exchangerate.host/latest";
-  var request = new XMLHttpRequest();
-  request.open("GET", requestURL);
-  request.responseType = "json";
-  request.send();
-  request.onload = function () {
-    var response = request.response;
-    console.log(response);
-  };
-};
+const products = ref<IProduct[]>([]);
+const marketOptions = ref<string[]>(['DE (EUR)', 'PL (PLN)']);
+const selectedMarket = ref<string>(marketOptions.value[0] ?? '');
 
 onMounted(() => {
-  state.products = store.getters.products as IProduct[];
-  vatRates();
-  exchangeRates();
+  products.value = store.getters.products as IProduct[];
 });
 </script>
