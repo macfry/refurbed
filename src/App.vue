@@ -16,7 +16,7 @@
     <div class="grid grid-cols-3 gap-4 p-4 mb-4">
       <div
         class="bg-white rounded-xl p-4 shadow-md"
-        v-for="(product, index) in products"
+        v-for="(product, index) in state.products"
         :key="product.id"
       >
         <img class="w-32" :src="product.picture" />
@@ -52,7 +52,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product in cart" :key="product.id">
+          <tr v-for="product in state.cart" :key="product.id">
             <td class="p-2">{{ product.name }}</td>
             <td class="p-2">{{ product.quantity }}</td>
             <td class="p-2">{{ product.price }}</td>
@@ -62,77 +62,82 @@
       <hr />
       <p class="m-2">Net: 0</p>
       <p class="m-2">VAT: 0</p>
-      <p class="m-2 font-bold">Total: {{ total(cart) }}</p>
+      <p class="m-2 font-bold">Total: {{ total(state.cart) }}</p>
     </div>
   </main>
 </template>
 
-<script>
-export default {
-  name: "App",
-  data: () => ({
-    cart: [],
-    products: [
-      {
-        id: 1,
-        name: "iPhone 11",
-        picture: "https://files.refurbed.com/ii/iphone-11-pro-1619179577.jpg",
-        price: 399,
-        stock: 3,
-      },
-      {
-        id: 2,
-        name: "Samsung Galaxy S8",
-        picture:
-          "https://files.refurbed.com/ii/64-gb-schwarz-single-sim-1562659918.jpg",
-        price: 275,
-        stock: 5,
-      },
-    ],
-  }),
-  methods: {
-    addToCart(id) {
-      let product = this.products[id];
-      product.quantity = 1;
-      product.stock = product.stock - 1;
-      console.log(product);
-      this.cart.push(product);
-    },
-    total(products) {
-      var total = 0;
-      products.forEach((product) => {
-        total += product.price;
-      });
-      return total;
-    },
-    vat_rates() {
-      var requestURL = "https://api.exchangerate.host/vat_rates";
-      var request = new XMLHttpRequest();
-      request.open("GET", requestURL);
-      request.responseType = "json";
-      request.send();
+<script setup lang="ts">
+import { reactive, onMounted } from 'vue';
+import { IProduct } from './types/products';
 
-      request.onload = function () {
-        var response = request.response;
-        console.log(response);
-      };
-    },
-    exchangeRates() {
-      var requestURL = "https://api.exchangerate.host/latest";
-      var request = new XMLHttpRequest();
-      request.open("GET", requestURL);
-      request.responseType = "json";
-      request.send();
+interface IState {
+  cart: IProduct[];
+  products: IProduct[];
+}
 
-      request.onload = function () {
-        var response = request.response;
-        console.log(response);
-      };
+const state = reactive<IState>({
+  cart: [],
+  products: [
+    {
+      id: 1,
+      name: "iPhone 11",
+      picture: "https://files.refurbed.com/ii/iphone-11-pro-1619179577.jpg",
+      price: 399,
+      stock: 3,
     },
-  },
-  mounted() {
-    this.vat_rates();
-    this.exchangeRates();
-  },
+    {
+      id: 2,
+      name: "Samsung Galaxy S8",
+      picture:
+        "https://files.refurbed.com/ii/64-gb-schwarz-single-sim-1562659918.jpg",
+      price: 275,
+      stock: 5,
+    },
+  ],
+});
+
+const addToCart = (id: number) => {
+  let product = state.products[id];
+  product.quantity = 1;
+  product.stock = product.stock - 1;
+  state.cart.push(product);
 };
+
+const total = (products: IProduct[]) => {
+  let total = 0;
+  products.forEach((product) => {
+    total += product.price;
+  });
+  return total;
+};
+
+const vatRates = () => {
+  var requestURL = "https://api.exchangerate.host/vat_rates";
+  var request = new XMLHttpRequest();
+  request.open("GET", requestURL);
+  request.responseType = "json";
+  request.send();
+  request.onload = function () {
+    var response = request.response;
+    console.log(response);
+  };
+};
+
+const exchangeRates = () => {
+  var requestURL = "https://api.exchangerate.host/latest";
+  var request = new XMLHttpRequest();
+  request.open("GET", requestURL);
+  request.responseType = "json";
+  request.send();
+  request.onload = function () {
+    var response = request.response;
+    console.log(response);
+  };
+};
+
+onMounted(() => {
+  vatRates();
+  exchangeRates();
+});
 </script>
