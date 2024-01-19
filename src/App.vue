@@ -68,6 +68,7 @@
 
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import { IMarketOption, IProduct } from './types/products';
 import SelectMarket from './components/SelectMarket.vue';
 
@@ -78,25 +79,11 @@ interface IState {
   selectedMarked: string;
 }
 
+const store = useStore();
+
 const state = reactive<IState>({
   cart: [],
-  products: [
-    {
-      id: 1,
-      name: "iPhone 11",
-      picture: "https://files.refurbed.com/ii/iphone-11-pro-1619179577.jpg",
-      price: 399,
-      stock: 3,
-    },
-    {
-      id: 2,
-      name: "Samsung Galaxy S8",
-      picture:
-        "https://files.refurbed.com/ii/64-gb-schwarz-single-sim-1562659918.jpg",
-      price: 275,
-      stock: 5,
-    },
-  ],
+  products: [],
   marketOptions: [
     {
       value: 'DE',
@@ -150,6 +137,7 @@ const exchangeRates = () => {
 };
 
 onMounted(() => {
+  state.products = store.getters.products;
   vatRates();
   exchangeRates();
 });

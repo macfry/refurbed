@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { PropType } from 'vue';
 import { IProduct } from './../types/products';
+import { useStore } from 'vuex';
+import { MutationTypes } from '@/store/mutation-types';
+
+const store = useStore();
 
 defineProps({
     product: {
@@ -9,12 +13,8 @@ defineProps({
     },
 });
 
-const addToCart = (id: number) => {
-    // to change
-    // let product = state.products[id];
-    // product.quantity = 1;
-    // product.stock = product.stock - 1;
-    // state.cart.push(product);
+const addToCart = (product: IProduct) => {
+    store.commit(MutationTypes.ADD_TO_CART, product);
 };
 </script>
 
@@ -33,8 +33,8 @@ const addToCart = (id: number) => {
         shadow-md
         float-right
         "
-        @click="addToCart(product.id)"
-        :disabled="product.stock < 0"
+        @click="addToCart(product)"
+        :disabled="product.stock < 1"
     >
         Add to cart
     </button>
