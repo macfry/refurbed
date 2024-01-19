@@ -7,3 +7,7 @@ export interface IProduct {
     quantity?: number;
 }
 
+export interface IMarketOption {
+    value: string;
+    name: string;
+}
