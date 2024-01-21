@@ -2,7 +2,6 @@ import { API_CURRENCY_KEY, API_CURRENCY_URL, API_VAT_PUBLIC_KEY, API_VAT_URL } f
 import { EMethods, ICurrencyResponse, ICurrencyResponseError, IRatesResponse } from '@/types/api';
 import { Ref, ref } from 'vue';
 
-
 interface IUseApi {
   loading: Ref<boolean>;
   error: Ref<string | null>;
@@ -21,6 +20,9 @@ export const useApi = (signal: AbortSignal): IUseApi => {
         try {
             const options = {
                 method: EMethods.GET,
+                signal,
+                headers: {},
+                
             };
             const url = `${API_CURRENCY_URL}live?access_key=${API_CURRENCY_KEY}&source=EUR`;
             const response = await fetch(url, options);

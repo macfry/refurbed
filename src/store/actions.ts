@@ -52,10 +52,9 @@ export const actions: ActionTree<IState, IState> & Actions = {
             return;
         } else {
             const vatResponse = await vatRates(`country_code=${payload.countryCode}`);
-            // debugger;
             commit(MutationTypes.SET_VAT_RATES, [...state.vatRates, ...(vatResponse?.rates ?? [])]);
 
-            if (vatResponse) {
+            if (vatResponse && vatResponse.rates[0]) {
                 commit(MutationTypes.SET_VAT_RATE, vatResponse.rates[0]);
             }
             
@@ -69,23 +68,26 @@ export const actions: ActionTree<IState, IState> & Actions = {
         }
 
         const rates = state.currency?.quotes
-        const diffInSec = (Date.now() - (state.currency?.timestamp ?? 0)) / 1000;
-        // debugger;
+        const diffInSec = (Date.now() / 1000) - (state.currency?.timestamp ?? 0);
         if (diffInSec <= 600 && rates) {
             const exchangeRate = rates[`EUR${payload.currency}`] ?? 1;
             commit(MutationTypes.SET_EXCHANGE_RATE, exchangeRate);
-            return
+            return;
         }
 
         const { exchangeRates } = useApi(payload.abortSignal);
         const exchangeResponse = await exchangeRates();
         if (exchangeResponse) {
-            commit(MutationTypes.SET_CURRENCY, exchangeResponse);
-            const exchangeRateResponse = exchangeResponse.quotes[`EUR${payload.currency}`] ?? 1;
+            const { timestamp, source, quotes } = exchangeResponse;
+
+            commit(MutationTypes.SET_CURRENCY, { timestamp, source, quotes });
+            const exchangeRateResponse = exchangeResponse.quotes[`EUR${payload.currency.toUpperCase()}`] ?? 1;
+            console.log(exchangeRateResponse);
             commit(MutationTypes.SET_EXCHANGE_RATE, exchangeRateResponse);
             return;
-        } 
-
-        commit(MutationTypes.SET_EXCHANGE_RATE, 1);
+        } else {
+            commit(MutationTypes.SET_EXCHANGE_RATE, 1);
+            return;
+        }
     },
 };

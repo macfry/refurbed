@@ -17,7 +17,7 @@ const addToCart = (product: IProduct) => {
     store.commit(MutationTypes.ADD_TO_CART, product);
 };
 
-const price = computed(() => props.product.price * store.getters.exchangeRate);
+const price = computed(() => (props.product.price * store.getters.exchangeRate).toFixed(2));
 </script>
 
 <template>

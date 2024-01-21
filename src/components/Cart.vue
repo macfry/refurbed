@@ -1,24 +1,20 @@
 <script setup lang="ts">
-import { onBeforeUnmount, reactive, watch } from 'vue';
+import { reactive, watch } from 'vue';
 import { IProduct } from '@/types/products';
 import { store } from '@/store';
-// import { EMethods, ICurrencyResponse, ICurrencyResponseError, IRatesResponse } from '@/types/api';
-// import { API_CURRENCY_KEY, API_CURRENCY_URL, API_VAT_PUBLIC_KEY, API_VAT_URL } from '@/config';
 
 interface ICartState {
     cart: IProduct[];
-    totalNet: number;
+    totalNet: string;
     totalVat: string;
-    total: number;
+    total: string;
 }
-
-const abortController = new AbortController();
 
 const state = reactive<ICartState>({
     cart: [],
-    totalNet: 0,
+    totalNet: '0',
     totalVat: '0',
-    total: 0,
+    total: '0',
 });
 
 const totalNet = (cart: IProduct[]): number => {
@@ -27,23 +23,21 @@ const totalNet = (cart: IProduct[]): number => {
     return total ?? 0;
 };
 
-const round = (number: number) => Number((Math.round(number * 100)/100).toFixed(2));
+const round = (number: number) => (Math.round(number * 100)/100).toFixed(2);
 
 watch(
     [() => store.state.cart, () => store.state.vatRate, () => store.state.exchangeRate], 
     ([cart, vat, exchangeRate]) => {
-        state.cart = cart;
-        state.totalNet = round(totalNet(cart) * exchangeRate);
-        const vatAmount = round(state.totalNet * (vat.standard_rate / 100));
-        state.totalVat = `${vatAmount} (${vat.standard_rate}%)`;
-        state.total = round(state.totalNet + vatAmount);
+        if (cart && vat && exchangeRate) {
+            state.cart = cart;
+            state.totalNet = round(totalNet(cart) * exchangeRate);
+            const vatAmount = round(Number(state.totalNet) * (vat.standard_rate / 100));
+            state.totalVat = `${vatAmount} (${vat.standard_rate}%)`;
+            state.total = round(Number(state.totalNet) + Number(vatAmount));
+        }
     }, 
     { deep: true }
 );
-
-onBeforeUnmount(() => {
-    abortController.abort();
-});
 </script>
 
 <template>
