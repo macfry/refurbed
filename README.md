@@ -1,3 +1,5 @@
+## important - please use node in version 20 or above
+
 Hey, 
 
 welcome to the rapid prototyping environment of our homework for the Senior Vue Developer position. 
