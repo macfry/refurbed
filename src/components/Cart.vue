@@ -1,35 +1,25 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { onBeforeUnmount, reactive, watch } from 'vue';
 import { IProduct } from '@/types/products';
 import { store } from '@/store';
-import { EMethods, ICurrencyResponse, ICurrencyResponseError, IRatesResponse } from '@/types/api';
-import { API_CURRENCY_KEY, API_CURRENCY_URL, API_VAT_PUBLIC_KEY, API_VAT_URL } from '@/config';
+// import { EMethods, ICurrencyResponse, ICurrencyResponseError, IRatesResponse } from '@/types/api';
+// import { API_CURRENCY_KEY, API_CURRENCY_URL, API_VAT_PUBLIC_KEY, API_VAT_URL } from '@/config';
 
 interface ICartState {
     cart: IProduct[];
     totalNet: number;
-    totalVat: number;
+    totalVat: string;
     total: number;
 }
-
-const props = defineProps({
-    market: {
-        type: String,
-        required: true,
-    }
-});
 
 const abortController = new AbortController();
 
 const state = reactive<ICartState>({
     cart: [],
     totalNet: 0,
-    totalVat: 0,
+    totalVat: '0',
     total: 0,
 });
-
-const loading = ref(false);
-const error = ref<string | null>(null);
 
 const totalNet = (cart: IProduct[]): number => {
     const total = cart.map(({ price, quantity }) => (quantity ?? 0) * price)
@@ -37,78 +27,16 @@ const totalNet = (cart: IProduct[]): number => {
     return total ?? 0;
 };
 
-const exchangeRates = async () => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-        const options = {
-            method: EMethods.GET,
-            signal: abortController.signal,
-        };
-        const url = `${API_CURRENCY_URL}live?access_key=${API_CURRENCY_KEY}&source=EUR`;
-        const response = await fetch(url, options);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json() as ICurrencyResponseError | ICurrencyResponse;
-        if (!data.success) {
-            throw new Error(`${data.error.info}`)
-        }
-        return data as ICurrencyResponse;
-    } catch (err) {
-        if (error?.name !== 'CanceledError') {
-            error.value = err?.message ?? 'Something goes wrong.';
-        }
-        return null;
-    } finally {
-        loading.value = false;
-    }
-};
-
-const vatRates = async () => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-        const options = {
-            method: EMethods.GET,
-            signal: abortController.signal,
-            headers: { 'X-API-KEY': API_VAT_PUBLIC_KEY },
-        };
-        const url = `${API_VAT_URL}rates`;
-        const response = await fetch(url, options);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json() as IRatesResponse;
-        return data;
-    } catch (err) {
-        if (error?.name !== 'CanceledError') {
-            error.value = err?.message ?? 'Something goes wrong.';
-        }
-        return null;
-    } finally {
-        loading.value = false;
-    }
-};
-
-onMounted(async () => {
-    await exchangeRates();
-    await vatRates();
-});
+const round = (number: number) => Number((Math.round(number * 100)/100).toFixed(2));
 
 watch(
-    [() => store.state.cart, () => props.market], 
-    ([cart, market]) => {
+    [() => store.state.cart, () => store.state.vatRate, () => store.state.exchangeRate], 
+    ([cart, vat, exchangeRate]) => {
         state.cart = cart;
-        state.totalNet = totalNet(cart);
-
-        // add get rates by countryCode
+        state.totalNet = round(totalNet(cart) * exchangeRate);
+        const vatAmount = round(state.totalNet * (vat.standard_rate / 100));
+        state.totalVat = `${vatAmount} (${vat.standard_rate}%)`;
+        state.total = round(state.totalNet + vatAmount);
     }, 
     { deep: true }
 );
@@ -135,7 +63,7 @@ onBeforeUnmount(() => {
             <tr v-for="product in state.cart" :key="product.id">
                 <td class="p-2">{{ product.name }}</td>
                 <td class="p-2">{{ product.quantity }}</td>
-                <td class="p-2">{{ product.price }}</td>
+                <td class="p-2">{{ round(product.price * store.getters.exchangeRate) }}</td>
             </tr>
             </tbody>
         </table>

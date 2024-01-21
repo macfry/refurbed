@@ -13,17 +13,18 @@
       <product v-for="product in products" :product="product" :key="`product-${product.id}`" />
     </div>
 
-    <cart :market="selectedMarket" />
+    <cart />
   </main>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watchEffect } from 'vue';
 import { useStore } from 'vuex';
 import { IProduct } from './types/products';
 import SelectMarket from './components/SelectMarket.vue';
 import Product from './components/Product.vue';
 import Cart from './components/Cart.vue';
+import { ActionTypes } from './store/action-types';
 
 const store = useStore();
 
@@ -31,7 +32,22 @@ const products = ref<IProduct[]>([]);
 const marketOptions = ref<string[]>(['DE (EUR)', 'PL (PLN)']);
 const selectedMarket = ref<string>(marketOptions.value[0] ?? '');
 
+const controller = new AbortController();
+
+watchEffect(() => {
+  if (selectedMarket.value) {
+    const currency = selectedMarket.value.split(' ')[1].slice(1, -1).toUpperCase();
+    const countryCode = selectedMarket.value.split(' ')[0].toUpperCase();
+    store.dispatch(ActionTypes.GET_EXCHANGE_RATE, { currency, abortSignal: controller.signal });
+    store.dispatch(ActionTypes.GET_VAT_RATE, { countryCode, abortSignal: controller.signal });
+  }
+});
+
 onMounted(() => {
   products.value = store.getters.products as IProduct[];
 });
+
+onBeforeUnmount(() => {
+  controller.abort();
+})
 </script>

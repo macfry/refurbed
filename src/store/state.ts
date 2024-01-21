@@ -1,9 +1,14 @@
+import { ILiveCurrency, IRate } from "@/types/api";
 import { IProduct } from "@/types/products";
 
 export interface IState {
     products: IProduct[];
     cart: IProduct[];
     market: string;
+    vatRates: IRate[];
+    currency: ILiveCurrency | null;
+    exchangeRate: number;
+    vatRate: IRate | null;
 };
 
 export const defaultState: IState = {
@@ -25,6 +30,10 @@ export const defaultState: IState = {
     ],
     cart: [],
     market: '',
+    vatRates: [],
+    currency: null,
+    exchangeRate: 1,
+    vatRate: null,
 };
   
 export const state: IState = JSON.parse(JSON.stringify(defaultState));

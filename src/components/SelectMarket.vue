@@ -14,7 +14,7 @@ const props = defineProps({
 const emits = defineEmits(['update:modelValue']);
 
 const onChage = (event: Event) => {
-    const selectedOption = event.target?.value ?? '';
+    const selectedOption = event.target?.value as string ?? '';
     emits('update:modelValue', selectedOption);
 };
 </script>

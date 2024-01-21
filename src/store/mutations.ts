@@ -2,6 +2,7 @@ import { IProduct } from "@/types/products";
 import { MutationTypes } from "./mutation-types";
 import { IState } from "./state";
 import { MutationTree } from "vuex";
+import { ILiveCurrency, IRate } from "@/types/api";
 
 export type Mutations<S = IState> = {
     [MutationTypes.ADD_TO_CART](state: S, product: IProduct): void;
@@ -9,6 +10,10 @@ export type Mutations<S = IState> = {
     [MutationTypes.ADD_PRODUCT](state: S, product: IProduct): void;
     [MutationTypes.DELETE_PRODUCT](state: S, id: number): void;
     [MutationTypes.SET_PRODUCTS](state: S, products: IProduct[]): void;
+    [MutationTypes.SET_VAT_RATES](state: S, vatRates: IRate[]): void;
+    [MutationTypes.SET_VAT_RATE](state: S, vatRate: IRate): void;
+    [MutationTypes.SET_EXCHANGE_RATE](state: S, exchangeRate: number): void;
+    [MutationTypes.SET_CURRENCY](state: S, currency: ILiveCurrency): void;
 }
 
 export const mutations: MutationTree<IState> & Mutations = {
@@ -54,4 +59,16 @@ export const mutations: MutationTree<IState> & Mutations = {
             .map(id => newData.find((product) => product.id === id))
         state.products = uniqueProducts as IProduct[];
     },
+    [MutationTypes.SET_VAT_RATES](state: IState, vatRates: IRate[]) {
+        state.vatRates = vatRates;
+    },
+    [MutationTypes.SET_VAT_RATE](state: IState, vatRate: IRate) {
+        state.vatRate = vatRate;
+    },
+    [MutationTypes.SET_EXCHANGE_RATE](state: IState, exchangeRate: number) {
+        state.exchangeRate = exchangeRate;
+    },
+    [MutationTypes.SET_CURRENCY](state: IState, currency: ILiveCurrency) {
+        state.currency = currency;
+    }
 };

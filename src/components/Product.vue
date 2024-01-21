@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { PropType } from 'vue';
+import { PropType, computed } from 'vue';
 import { IProduct } from './../types/products';
 import { useStore } from 'vuex';
 import { MutationTypes } from '@/store/mutation-types';
 
 const store = useStore();
 
-defineProps({
+const props = defineProps({
     product: {
         type: Object as PropType<IProduct>,
         required: true,
@@ -16,6 +16,8 @@ defineProps({
 const addToCart = (product: IProduct) => {
     store.commit(MutationTypes.ADD_TO_CART, product);
 };
+
+const price = computed(() => props.product.price * store.getters.exchangeRate);
 </script>
 
 <template>
@@ -41,5 +43,7 @@ const addToCart = (product: IProduct) => {
         >
             Add to cart
         </button>
+
+        Price by currency {{ price }}
     </div>
 </template>
